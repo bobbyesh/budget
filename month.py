@@ -2,15 +2,15 @@ import datetime as dt
 
 
 class Monthly:
-    def __init__(self, monthyear, *args, **kwargs):
-        self.monthyear = monthyear
+    def __init__(self, month, *args, **kwargs):
+        self.month = month
 
     def increment_month(self):
-        self.monthyear = self.monthyear.next()
-        return self.monthyear
+        self.month = self.month.next()
+        return self.month
 
 
-class MonthYear:
+class Month:
     def __init__(self, month, year):
         self.month = month
         self.year = year
@@ -21,14 +21,14 @@ class MonthYear:
 
     @staticmethod
     def from_datetime(d):
-        return MonthYear(d.month, d.year)
+        return Month(d.month, d.year)
 
     def __eq__(self, other):
         return self.month == other.month and self.year == other.year
 
     def __add__(self, other):
         new = self.datetime + other
-        return MonthYear.from_datetime(new)
+        return Month.from_datetime(new)
 
     def __sub__(self, other):
         return self.datetime - other.datetime
@@ -58,7 +58,7 @@ class MonthYear:
                 month += 1
 
         temp = dt.datetime(year, month, 1)
-        return MonthYear.from_datetime(temp)
+        return Month.from_datetime(temp)
 
     def __hash__(self):
         return hash(frozenset((self.month, self.year, self.datetime)))

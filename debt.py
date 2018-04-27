@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-from monthyear import MonthYear
-from consttimes import START_TIME, START_MONTH_YEAR, END_TIME, END_MONTH_YEAR
+from month import Month
+from consttimes import START_TIME, START_MONTH, END_TIME, END_MONTH_YEAR
 
 class Const:
     car = 8700
@@ -26,7 +26,7 @@ def car_expenses():
     return ret
 
 def payment_timeline(remaining, payment):
-    time = START_MONTH_YEAR
+    time = START_MONTH
     ret = dict()
 
     while remaining > 0:
@@ -40,7 +40,7 @@ car_expenses = payment_timeline(Const.car, Payment.car)
 ring_expenses = payment_timeline(Const.ring, Payment.ring)
 
 def payment(monthyear, starting, payment, increment_interval=12, increment_amount=10, increment=False):
-    current_monthyear = START_MONTH_YEAR
+    current_monthyear = START_MONTH
     passed = 0
     remaining = starting
 
@@ -74,7 +74,7 @@ def debt(monthyear):
 
 
 if __name__ == '__main__':
-    monthyear = MonthYear.from_datetime(datetime(2018, 6, 1))
+    monthyear = Month.from_datetime(datetime(2018, 6, 1))
     for _ in range(13):
         print(debt(monthyear))
         monthyear = monthyear.next()

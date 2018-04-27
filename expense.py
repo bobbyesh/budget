@@ -1,27 +1,26 @@
 from debt import debt
-from monthyear import MonthYear
+from month import Month
+
 
 class Expenses:
-    fixed = {
-        'Auto Insurance': 72,
-        'Food': 967,
-        'Gas': 80,
-        'Kaitlin Other': 500,
-        'Buffer': 300,
-    }
+    AUTO_INSURANCE = 'Auto Insurance'
+    FOOD = 'Food'
+    GAS = 'Gas'
+    OTHER = 'Kaitlin Other'
+    BUFFER = 'Buffer'
 
-
-    def __init__(self, monthyear: MonthYear, housing):
-        self.monthyear = monthyear
+    def __init__(self, month: Month, housing, fixed):
+        self.month = month
         self.housing = housing
+        self.fixed = fixed
 
-    def increment_month(self) -> MonthYear:
-        self.monthyear = self.monthyear.next()
+    def increment_month(self) -> Month:
+        self.month = self.month.next()
         self.housing.increment_month()
-        return self.monthyear
+        return self.month
 
     def monthly(self) -> int:
-        return self.housing.monthly() + self.fixed_total() + debt(self.monthyear)
+        return self.housing.monthly() + self.fixed_total() + debt(self.month)
 
     def fixed_total(self) -> int:
-        return sum(Expenses.fixed.values())
+        return sum(self.fixed.values())

@@ -1,17 +1,17 @@
 import datetime
-from monthyear import MonthYear
+from month import Month
 
 
 class Housing:
-    def __init__(self, movein: MonthYear, *args, **kwargs):
-        self.monthyear = movein
+    def __init__(self, movein: Month, *args, **kwargs):
+        self.month = movein
 
     def increment_month(self):
-        self.monthyear = self.monthyear.next()
-        return self.monthyear
+        self.month = self.month.next()
+        return self.month
 
     def monthly(self):
-        return NotImplemented("Must implement monthly for Housing subclass")
+        raise NotImplementedError("Must implement monthly for Housing subclass")
 
 
 class HomeOwned(Housing):
@@ -23,7 +23,7 @@ class HomeOwned(Housing):
     INSURANCE = 1000 / 12
     UTILITIES = 300
 
-    def __init__(self, value, downpayment, purchased_on: MonthYear, interest=4.3, years=30):
+    def __init__(self, value, downpayment, purchased_on: Month, interest=4.3, years=30):
         super().__init__(purchased_on)
         self.original_value = value
         self.downpayment = downpayment
@@ -35,7 +35,7 @@ class HomeOwned(Housing):
         self.final_date = purchased_on + datetime.timedelta(30 * 12 * years)
 
     def monthly(self):
-        if self.monthyear > self.final_date:
+        if self.month > self.final_date:
             return 0
 
         return self.mortgage + self.other_expenses()
@@ -63,13 +63,13 @@ class HomeOwned(Housing):
         return self.original_value - self.balance()
 
     def amount_paid(self):
-        delta = self.monthyear.datetime - self.purchased_on.datetime
+        delta = self.month.datetime - self.purchased_on.datetime
         months = delta.days // 30
         paid = months * self.mortgage
         return paid if paid < self.mortgage_total else self.mortgage_total
 
     def current_value(self):
-        years_passed = (self.monthyear - self.purchased_on).days / 30 / 12
+        years_passed = (self.month - self.purchased_on).days / 30 / 12
         if years_passed >= 30:
             return 0
 
@@ -86,7 +86,7 @@ class HomeOwned(Housing):
         return fv_original - fv_annuity
 
     def payments_made(self):
-        return (self.monthyear - self.purchased_on).days / 30
+        return (self.month - self.purchased_on).days / 30
 
 
 class Rental(Housing):
@@ -102,5 +102,5 @@ class Rental(Housing):
 
 
 if __name__ == '__main__':
-    r = Rental(rent=1050, movein=MonthYear(9, 2018))
+    r = Rental(rent=1050, movein=Month(9, 2018))
     print('rental monthly', r.monthly())
