@@ -1,35 +1,38 @@
-from datetime import datetime, timedelta
+from consttimes import START_TIME, START_MONTH_YEAR, END_TIME, END_MONTH_YEAR
 from monthyear import MonthYear
-from collections import defaultdict
-from consttimes import START_TIME, END_TIME, END_MONTH_YEAR
 from income import income
+from housing import HomeOwned, Rental
+from expense import Expenses
+
 
 INIT_SAVINGS = 1000
-
 NET_GAIN = 'NET_GAIN'
 TOTAL_SAVINGS = 'TOTAL_SAVINGS'
 
-def net_gain(time):
-    return income(time) - expense(time)
-
 def main():
-    """Starting here"""
     # Init total savings
     current_total = INIT_SAVINGS
 
     # Init current time
-    current_time = MonthYear.from_datetime(START_TIME)
+    current_time = START_MONTH_YEAR
+
+    home = Rental(1350, current_time)
+    expenses = Expenses(monthyear=current_time, housing=home)
 
     # While current time is less than the END_MONTH_YEAR
-    while current_time < END_MONTH_YEAR:
+    while expenses.monthyear < END_MONTH_YEAR:
         # Update current time's income
-        Global.net_gains[current_time][NET_GAIN] = net_gain(current_time)
+        monthly_net = income(expenses.monthyear) - expenses.monthly()
+        current_total += monthly_net
+        print(monthly_net)
+        if monthly_net > 5000:
+            print(expenses.monthyear)
+            # import pdb;pdb.set_trace()
+            pass
 
-        # Update current time's expenses
-        # Calculate current time's net gain (equal difference between income and expenses)
-        # Add current time's net gain to previous month's total savings
-        # Store net gain in current month stats
-        # Increment current time to next month
+        expenses.increment_month()
+
+    print("By {} your savings will be {}".format(expenses.monthyear, current_total))
 
 
 main()

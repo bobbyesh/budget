@@ -30,7 +30,7 @@ def payment_timeline(remaining, payment):
     ret = dict()
 
     while remaining > 0:
-        ret[frozenset(time)] = remaining
+        ret[time] = remaining
         remaining -= payment
         time = time.next()
 

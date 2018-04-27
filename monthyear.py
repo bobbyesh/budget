@@ -1,6 +1,14 @@
 import datetime as dt
-from collections import namedtuple
-from random import randint
+
+
+class Monthly:
+    def __init__(self, monthyear, *args, **kwargs):
+        self.monthyear = monthyear
+
+    def increment_month(self):
+        self.monthyear = self.monthyear.next()
+        return self.monthyear
+
 
 class MonthYear:
     def __init__(self, month, year):
@@ -9,7 +17,7 @@ class MonthYear:
         self.datetime = dt.datetime(year, month, 1)
 
     def __str__(self):
-        return self.datetime.strftime('%b %y')
+        return self.datetime.strftime('%b %Y')
 
     @staticmethod
     def from_datetime(d):
@@ -49,8 +57,8 @@ class MonthYear:
             else:
                 month += 1
 
-        temp = datetime(year, month, 1)
+        temp = dt.datetime(year, month, 1)
         return MonthYear.from_datetime(temp)
 
     def __hash__(self):
-        return hash(frozenset(tuple(self.month, self.year, self.datetime)))
+        return hash(frozenset((self.month, self.year, self.datetime)))
