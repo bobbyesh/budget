@@ -19,6 +19,9 @@ class Month:
     def __str__(self):
         return self.datetime.strftime('%b %Y')
 
+    def __repr__(self):
+        return str(self)
+
     @staticmethod
     def from_datetime(d):
         return Month(d.month, d.year)

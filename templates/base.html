@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Projection</title>
+    <link rel="stylesheet" href="../static/mui/css/mui.css">
+    <link rel="stylesheet" href="../static/css/index.css">
+    <script type="text/javascript" src="../static/mui/js/mui.js"></script>
+</head>
+<body>
+<header class="mui-appbar mui--z1">
+    <div class="mui-container">
+        {% block header %}
+        {% endblock %}
+    </div>
+</header>
+
+<div class="mui-container">
+    {% block content %}
+    {% endblock content %}
+</div>
+
+<script type="text/javascript">
+    (function () {
+        // Define methods
+        const attachListeners = function () {
+            const projectionsTab = document.getElementById("projections-tab");
+            const housingTab = document.getElementById("housing-tab");
+
+            const projectionsTabLink = document.getElementById("projections-tab-link");
+            projectionsTabLink.onclick = function () {
+                projectionsTab.style.display = "block";
+                housingTab.style.display = "none"
+            };
+
+
+            const housingTabLink = document.getElementById("housing-tab-link");
+            housingTabLink.onclick = function () {
+                projectionsTab.style.display = "none";
+                housingTab.style.display = "block"
+            };
+        };
+
+        // Init
+        attachListeners();
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{% if title %}
+    <div class="mui--text-title">{{ table.title }}</div>
+{% endif %}
+<table class="mui-table">
+    <thead>
+    <tr>
+        {% for header in table.headers %}
+            <th>{{ header }}</th>
+        {% endfor %}
+    </tr>
+    </thead>
+    <tbody>
+    {% for row in table.rows %}
+        <tr>
+            {% for cell in row %}
+                <td>{{ cell }}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

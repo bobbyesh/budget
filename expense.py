@@ -24,3 +24,6 @@ class Expenses:
 
     def fixed_total(self) -> int:
         return sum(self.fixed.values())
+
+    def other_monthly_expenses(self):
+        return self.fixed

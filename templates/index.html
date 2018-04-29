@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <table>
+        <tr class="mui--appbar-height">
+            <td class="mui--text-title">Financial Forecast</td>
+            <td class="mui--text-right">
+                <ul class="mui-list--inline mui--text-body2">
+                    <li><a href="#" class="tab-link" id="projections-tab-link">Projections</a></li>
+                    <li><a href="#" class="tab-link" id="housing-tab-link">Housing</a></li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+{% endblock %}
+
+{% block content %}
+    <div class="mui--text-subhead">Housing</div>
+    <div class="mui--text-subhead">Category: {{ housing.category }}</div>
+    <div class="mui--text-subhead">Move-in Date: {{ housing.move_in }}</div>
+
+    <div id="projections-tab">
+        <div class="mui--text-subhead">Projections</div>
+        {% for table in projection_tables %}
+            {% with table=table %}
+                {% include 'table.html' %}
+            {% endwith %}
+        {% endfor %}
+    </div>
+
+    <div id="housing-tab">
+        {% with table=housing_stats_table %}
+            {% include 'table.html' %}
+        {% endwith %}
+
+        <div class="mui--text-subhead">Other Housing Expenses</div>
+        {% with table=housing_other_expenses_table %}
+            {% include 'table.html' %}
+        {% endwith %}
+    </div>
+{% endblock %}

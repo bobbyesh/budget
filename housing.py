@@ -1,10 +1,14 @@
 import datetime
 from month import Month
+from collections import OrderedDict
 
 
 class Housing:
-    def __init__(self, movein: Month, *args, **kwargs):
-        self.month = movein
+    category = 'Home'
+
+    def __init__(self, move_in: Month, *args, **kwargs):
+        self.month = move_in
+        self.move_in = move_in
 
     def increment_month(self):
         self.month = self.month.next()
@@ -26,6 +30,7 @@ class HomeOwned(Housing):
     def __init__(self, value, downpayment, purchased_on: Month, interest=4.3, years=30):
         super().__init__(purchased_on)
         self.original_value = value
+        self.repairs = (self.original_value * 0.01) / 12
         self.downpayment = downpayment
         self.loan = value - downpayment
         self.interest = interest / 100 / 12
@@ -33,12 +38,13 @@ class HomeOwned(Housing):
         self.payments = years * 12
         self.purchased_on = purchased_on
         self.final_date = purchased_on + datetime.timedelta(30 * 12 * years)
+        self.property_tax = HomeOwned.AVG_PROPERTY_TAX / 12
 
     def monthly(self):
         if self.month > self.final_date:
             return 0
 
-        return self.mortgage + self.other_expenses()
+        return self.mortgage + self.calculate_other_expenses()
 
     @property
     def mortgage(self):
@@ -49,11 +55,27 @@ class HomeOwned(Housing):
     def mortgage_total(self):
         return 30 * self.years * self.mortgage
 
-    def other_expenses(self):
-        repairs = (self.original_value * 0.01) / 12 # One percent per year
-        taxes = HomeOwned.AVG_PROPERTY_TAX / 12 # Average for Austin, TX
+    def calculate_other_expenses(self):
         pmi = self.PMI()
-        return HomeOwned.HOA + repairs + taxes + pmi + HomeOwned.UTILITIES + HomeOwned.INSURANCE
+        return HomeOwned.HOA + self.repairs + self.property_tax + pmi + HomeOwned.UTILITIES + HomeOwned.INSURANCE
+
+    def other_monthly_expenses(self):
+        ret = OrderedDict()
+        ret['Property Tax'] = self.property_tax
+        ret['PMI'] = HomeOwned.AVG_MONTHLY_PMI
+        ret['HOA fees'] = HomeOwned.HOA
+        ret['Insurance'] = HomeOwned.INSURANCE
+        ret['Utilities'] = HomeOwned.UTILITIES
+        ret['Repairs'] = self.repairs
+        return ret
+
+    def stats(self):
+        ret = OrderedDict()
+        ret['Mortgage'] = self.mortgage
+        ret['Down Payment'] = self.downpayment
+        ret['Interest Rate'] = self.interest
+        ret['Home Value'] = self.original_value
+        return ret
 
     def PMI(self):
         ratio = self.balance() / self.original_value
@@ -90,17 +112,29 @@ class HomeOwned(Housing):
 
 
 class Rental(Housing):
+    category = 'Rental'
     UTILITIES = 250
     INSURANCE = 33
 
-    def __init__(self, rent, movein):
-        super().__init__(movein)
+    def __init__(self, rent, move_in):
+        super().__init__(move_in)
         self.rent = rent
 
     def monthly(self):
         return self.rent + Rental.UTILITIES + Rental.INSURANCE
 
+    def other_monthly_expenses(self):
+        ret = OrderedDict()
+        ret['Insurance'] = self.INSURANCE
+        ret['Utilities'] = self.UTILITIES
+        return ret
+
+    def stats(self):
+        ret = OrderedDict()
+        ret['Rent'] = self.rent
+        return ret
+
 
 if __name__ == '__main__':
-    r = Rental(rent=1050, movein=Month(9, 2018))
+    r = Rental(rent=1050, move_in=Month(9, 2018))
     print('rental monthly', r.monthly())
