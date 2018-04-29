@@ -25,6 +25,9 @@
         const attachListeners = function () {
             const projectionsTab = document.getElementById("projections-tab");
             const housingTab = document.getElementById("housing-tab");
+            projectionsTab.style.display = "block";
+            housingTab.style.display = "none"
+
 
             const projectionsTabLink = document.getElementById("projections-tab-link");
             projectionsTabLink.onclick = function () {

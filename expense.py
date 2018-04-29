@@ -15,8 +15,8 @@ class Expenses:
         self.fixed = fixed
 
     def increment_month(self) -> Month:
-        self.month = self.month.next()
-        self.housing.increment_month()
+        self.month.next()
+        self.housing.month.next()
         return self.month
 
     def monthly(self) -> int:

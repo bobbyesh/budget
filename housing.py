@@ -7,11 +7,11 @@ class Housing:
     category = 'Home'
 
     def __init__(self, move_in: Month, *args, **kwargs):
-        self.month = move_in
-        self.move_in = move_in
+        self.month = move_in.copy()
+        self.move_in = move_in.copy()
 
     def increment_month(self):
-        self.month = self.month.next()
+        self.month.next()
         return self.month
 
     def monthly(self):

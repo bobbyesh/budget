@@ -1,87 +1,85 @@
 import jinja2
+
+from debt import GraduatedPaymentLoan, Debt
 from month import Month
 from income import Income
 from housing import HomeOwned, Rental
 from expense import Expenses
 
-INIT_SAVINGS = 1000
 
-start_month = Month(4, 2018)
-housing = Rental(1350, start_month)
-
-
-def get_expenses(current_time):
-    fixed = {Expenses.AUTO_INSURANCE: 72, Expenses.FOOD: 967, Expenses.GAS: 80, Expenses.OTHER: 500,
-             Expenses.BUFFER: 300, }
-    return Expenses(month=current_time, housing=housing, fixed=fixed)
-
-
-def get_income(current_time):
-    changes = {
-        0: {
-            Month(2, 2019): 4350,
-            Month(5, 2020): 7900,
-        },
-    }
-
-    return Income(month=current_time, initial_incomes={0: 4050, 1: 1700}, changes=changes)
-
-
-def as_months(anylist: list):
+def bymonth(anylist: list):
     for i in range(0, len(anylist), 12):
         yield anylist[i:i + 12]
 
 
-def projection_tables():
-    years = 3
-    end_month = Month(4, start_month.year + years)
+class Const:
+    INCOME = 'Income'
+    NET = 'Net'
+    SAVINGS = 'Savings'
+    EXPENSES = 'Expenses'
+    MONTHS = 'Months'
 
-    # Init total savings
-    current_total = 0
-    initial_savings = 1000
 
-    # Init current time
-    current_time = start_month
+housing = Rental(rent=1350, move_in=Month(5, 2018))
 
-    # Initialize income and expenses
-    income = get_income(current_time)
-    expenses = get_expenses(current_time)
 
-    months = []
-    expenses_list = []
-    incomes = []
-    nets = []
-    savings = []
+def run_simulation(years=3, initial_savings=1000):
+    current_month = housing.month
+    student = GraduatedPaymentLoan(start_month=current_month, original_amount=50000, payment=160, increase=10)
+    car = Debt(start_month=current_month, original_amount=8700, payment=271, fees=10)
+    ring = Debt(start_month=current_month, original_amount=7500, payment=303)
 
-    # Accumulate savings
-    while expenses.month < end_month:
-        monthly_net = income.monthly() - expenses.monthly()
-        current_total += monthly_net
+    incomes = [
+        Income(month=current_month, net_income=4050, changes=None),
+        Income(month=current_month, net_income=1600, changes=None)
+    ]
 
-        months.append(expenses.month)
-        expenses_list.append(expenses.monthly())
-        incomes.append(income.monthly())
-        nets.append(monthly_net)
+    fixed_expenses = {
+        Expenses.AUTO_INSURANCE: 72,
+        Expenses.FOOD: 967,
+        Expenses.GAS: 80,
+        Expenses.OTHER: 500,
+    }
 
-        if savings:
-            temp = savings[-1] + monthly_net
-        else:
-            temp = initial_savings
+    results = {
+        Const.INCOME: [],
+        Const.NET: [],
+        Const.SAVINGS: [],
+        Const.EXPENSES: [],
+        Const.MONTHS: [],
+    }
 
-        savings.append(temp)
+    fixed_ = sum(fixed_expenses.values())
+    for _ in range(years * 12):
+        expenses = fixed_ + housing.monthly() + student.monthly() + car.monthly() + ring.monthly()
+        income = sum(income.monthly() for income in incomes)
+        net = income - expenses
 
-        expenses.increment_month()
-        income.increment_month()
+        results[Const.NET].append(net)
+        results[Const.MONTHS].append(current_month.copy())
+        results[Const.EXPENSES].append(expenses)
+        results[Const.INCOME].append(income)
 
-    month_chunks = list(as_months(months))
-    expenses_chunks = list(as_months(expenses_list))
-    income_chunks = list(as_months(incomes))
-    net_chunks = list(as_months(nets))
-    savings_chunks = list(as_months(savings))
+        current_month.next()
+
+    savings = initial_savings
+    for net in results[Const.NET]:
+        savings += net
+        results[Const.SAVINGS].append(savings)
+
+    return results
+
+
+def projection_tables(months, expenses, incomes, nets, savings):
+    month_chunks = list(bymonth(months))
+    expenses_chunks = list(bymonth(expenses))
+    income_chunks = list(bymonth(incomes))
+    net_chunks = list(bymonth(nets))
+    savings_chunks = list(bymonth(savings))
 
     tables = []
     for m, e, i, n, s in zip(month_chunks, expenses_chunks, income_chunks, net_chunks, savings_chunks):
-        t = {
+        tables.append({
             'headers': [''] + m,
             'rows': [
                 ['Expenses'] + e,
@@ -89,8 +87,7 @@ def projection_tables():
                 ['Net'] + n,
                 ['Savings'] + s
             ]
-        }
-        tables.append(t)
+        })
 
     return tables
 
@@ -116,10 +113,18 @@ def get_template():
     return env.get_template('index.html')
 
 
-with open('./out/index.html', 'w') as f:
-    template = get_template()
-    html = template.render(projection_tables=projection_tables(),
-                           housing_other_expenses_table=housing_other_expenses_table(),
-                           housing_stats_table=housing_stats_table(),
-                           housing=housing)
-    f.write(html)
+if __name__ == '__main__':
+    simulation_results = run_simulation()
+    proj_tables = projection_tables(months=simulation_results[Const.MONTHS],
+                                    expenses=simulation_results[Const.EXPENSES],
+                                    incomes=simulation_results[Const.INCOME],
+                                    savings=simulation_results[Const.SAVINGS],
+                                    nets=simulation_results[Const.NET])
+
+    with open('./out/index.html', 'w') as f:
+        template = get_template()
+        html = template.render(projection_tables=proj_tables,
+                               housing_other_expenses_table=housing_other_expenses_table(),
+                               housing_stats_table=housing_stats_table(),
+                               housing=housing)
+        f.write(html)

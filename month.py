@@ -1,4 +1,5 @@
-import datetime as dt
+import datetime
+import copy
 
 
 class Monthly:
@@ -14,13 +15,16 @@ class Month:
     def __init__(self, month, year):
         self.month = month
         self.year = year
-        self.datetime = dt.datetime(year, month, 1)
+        self.datetime = datetime.datetime(year, month, 1)
 
     def __str__(self):
         return self.datetime.strftime('%b %Y')
 
     def __repr__(self):
         return str(self)
+
+    def copy(self) -> 'Month':
+        return copy.deepcopy(self)
 
     @staticmethod
     def from_datetime(d):
@@ -48,8 +52,8 @@ class Month:
     def __ge__(self, other):
         return self.datetime >= other.datetime
 
-    def next(self):
-        temp = self.datetime + dt.timedelta(days=30)
+    def next(self) -> 'Month':
+        temp = self.datetime + datetime.timedelta(days=30)
 
         month = temp.month
         year = temp.year
@@ -60,8 +64,10 @@ class Month:
             else:
                 month += 1
 
-        temp = dt.datetime(year, month, 1)
-        return Month.from_datetime(temp)
+        self.datetime = datetime.datetime(year, month, 1)
+        self.month = month
+        self.year = year
+        return self
 
     def __hash__(self):
         return hash(frozenset((self.month, self.year, self.datetime)))

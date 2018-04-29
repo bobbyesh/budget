@@ -1,43 +1,62 @@
-from datetime import datetime, timedelta
 from month import Month
-from consttimes import START_TIME, START_MONTH, END_TIME, END_MONTH_YEAR
-
-class Const:
-    car = 8700
-    ring = 7200
-    student = 50000
-
-class Payment:
-    car = 271
-    ring = 303
-    student = 160
+from consttimes import START_MONTH
 
 
-def car_expenses():
-    rem = Const.car
-    payment = Payment.car
-    time = START_TIME
+class Debt:
+    def __init__(self, start_month: Month, original_amount, payment, fees=0):
+        self.start_month = start_month.copy()
+        self.current_month = start_month.copy()
+        self.original_amount = original_amount
+        self.payment = payment
+        self.fees = fees
 
-    ret = [rem]
-    while rem > 0:
-        ret.append(rem)
-        rem -= payment
+    def monthly(self) -> float:
+        if self.owed() == 0:
+            return 0
 
-    return ret
+        return self.payment + self.fees
 
-def payment_timeline(remaining, payment):
-    time = START_MONTH
+    def paid(self) -> float:
+        """Returns the amount already paid."""
+        delta = self.current_month - self.start_month
+        months_paid = delta.days / 30
+        paid = months_paid * self.payment
+        return round(min(paid, self.original_amount), 2)
+
+    def owed(self) -> float:
+        """Returns the amount owed."""
+        return round(self.original_amount - self.paid(), 2)
+
+    def next(self):
+        self.current_month.next()
+
+
+class GraduatedPaymentLoan(Debt):
+    def __init__(self, increase, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.increase = increase
+
+    def next(self):
+        super().next()
+        if (self.current_month - self.start_month).days % 365 == 0:
+            self.payment += self.increase
+
+
+def payment_timeline(remaining, payment, month):
     ret = dict()
-
+    time = month
     while remaining > 0:
-        ret[time] = remaining
+        ret[month] = remaining
         remaining -= payment
         time = time.next()
 
     return ret
 
+'''
 car_expenses = payment_timeline(Const.car, Payment.car)
 ring_expenses = payment_timeline(Const.ring, Payment.ring)
+'''
+
 
 def payment(monthyear, starting, payment, increment_interval=12, increment_amount=10, increment=False):
     current_monthyear = START_MONTH
@@ -49,7 +68,6 @@ def payment(monthyear, starting, payment, increment_interval=12, increment_amoun
             if passed != 0 and passed % increment_interval == 0:
                 payment += increment_amount
 
-
         if remaining > 0:
             remaining -= payment
         else:
@@ -59,22 +77,55 @@ def payment(monthyear, starting, payment, increment_interval=12, increment_amoun
         current_monthyear = current_monthyear.next()
     return payment
 
-def student(monthyear):
-    return payment(monthyear, starting=Const.student, payment=Payment.student, increment=True)
+
+def student(month):
+    return payment(month, starting=Const.student, payment=Payment.student, increment=True, increment_amount=10,
+                   increment_interval=12)
+
 
 def car(monthyear):
     return payment(monthyear, starting=Const.car, payment=Payment.car, increment=False)
 
+
 def ring(monthyear):
     return payment(monthyear, starting=Const.ring, payment=Payment.ring, increment=False)
 
-def debt(monthyear):
+
+def debt(month):
     """Return the debt for the month and year of :arg:`monthyear`"""
-    return student(monthyear) + car(monthyear) + ring(monthyear)
+    return student(month) + car(month) + ring(month)
+
+
+class DebtManager:
+    def __init__(self, month: Month, debts=None):
+        self.month = month
+        self.debts = debts if debts is not None else []
 
 
 if __name__ == '__main__':
-    monthyear = Month.from_datetime(datetime(2018, 6, 1))
+    t = Month(4, 2018)
+    d = Debt(start_month=t, original_amount=2000, payment=100)
+    assert d.monthly() == 100
+
+    for i in range(2000 // 100):
+        d.next()
+        assert d.owed() == round(d.original_amount - d.paid(), 2), '{} == {}'.format(d.owed(), round(d.original_amount - d.paid(), 2))
+
+    assert d.owed() == 0
+    assert d.paid() == d.original_amount
+
+    car = Debt(start_month=t, original_amount=8700, payment=271, fees=10)
+    assert car.monthly() == 281
+
+    student = GraduatedPaymentLoan(start_month=t, original_amount=50000, payment=160, increase=10)
+    assert student.monthly() == 160
+
     for _ in range(13):
-        print(debt(monthyear))
-        monthyear = monthyear.next()
+        student.next()
+
+    assert student.monthly() == 170
+
+    print("Tests passed...")
+
+
+
