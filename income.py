@@ -1,14 +1,13 @@
 import typing
 
 from month import Month, Monthly
-from consttimes import START_MONTH
+
+ChangeType = typing.List[typing.Tuple[Month, typing.SupportsInt]]
 
 
 class Income(Monthly):
-    def __init__(self, month: Month, net_income: typing.Union[float, int],
-                 changes: typing.Tuple[Month, typing.SupportsInt] = None):
-        super().__init__(month)
-        self.month = month.copy()
+    def __init__(self, net_income: typing.Union[float, int], changes: ChangeType = None):
+        super().__init__()
         self.changes = changes if changes is not None else [tuple()]
         self.net_income = net_income
 
@@ -20,22 +19,20 @@ class Income(Monthly):
             if month == self.month:
                 self.net_income = new_income
 
-    def increment_month(self):
-        self.month.next()
-        self.update_current_incomes()
-
 
 def test():
+    month = Month(4, 2018)
     changes = [
         (Month(2, 2019), 4350),
         (Month(5, 2020), 7900),
     ]
 
-    income = Income(month=START_MONTH, net_income=4050, changes=changes)
+    income = Income(net_income=4050, changes=changes)
+    income.month = month
     for _ in range(40):
-        income.increment_month()
         print('month', income.month)
         print(income.monthly())
+        month.next()
 
 
 if __name__ == '__main__':

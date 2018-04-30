@@ -1,24 +1,9 @@
 import datetime
-from month import Month
+from month import Month, Monthly
 from collections import OrderedDict
 
 
-class Housing:
-    category = 'Home'
-
-    def __init__(self, move_in: Month, *args, **kwargs):
-        self.month = move_in.copy()
-        self.move_in = move_in.copy()
-
-    def increment_month(self):
-        self.month.next()
-        return self.month
-
-    def monthly(self):
-        raise NotImplementedError("Must implement monthly for Housing subclass")
-
-
-class HomeOwned(Housing):
+class HomeOwned(Monthly):
     AVG_PROPERTY_TAX = 1000
 
     AVG_APPRECIATION = 5.0 / 100 # Avg annual apprecation for home in Austin, TX
@@ -27,8 +12,8 @@ class HomeOwned(Housing):
     INSURANCE = 1000 / 12
     UTILITIES = 300
 
-    def __init__(self, value, downpayment, purchased_on: Month, interest=4.3, years=30):
-        super().__init__(purchased_on)
+    def __init__(self, value, downpayment, origination_date: Month,interest=4.3, years=30):
+        super().__init__()
         self.original_value = value
         self.repairs = (self.original_value * 0.01) / 12
         self.downpayment = downpayment
@@ -36,8 +21,8 @@ class HomeOwned(Housing):
         self.interest = interest / 100 / 12
         self.years = years
         self.payments = years * 12
-        self.purchased_on = purchased_on
-        self.final_date = purchased_on + datetime.timedelta(30 * 12 * years)
+        self.purchased_on = origination_date
+        self.final_date = origination_date + datetime.timedelta(30 * 12 * years)
         self.property_tax = HomeOwned.AVG_PROPERTY_TAX / 12
 
     def monthly(self):
@@ -111,13 +96,13 @@ class HomeOwned(Housing):
         return (self.month - self.purchased_on).days / 30
 
 
-class Rental(Housing):
+class Rental(Monthly):
     category = 'Rental'
     UTILITIES = 250
     INSURANCE = 33
 
-    def __init__(self, rent, move_in):
-        super().__init__(move_in)
+    def __init__(self, rent):
+        super().__init__()
         self.rent = rent
 
     def monthly(self):
@@ -136,5 +121,5 @@ class Rental(Housing):
 
 
 if __name__ == '__main__':
-    r = Rental(rent=1050, move_in=Month(9, 2018))
+    r = Rental(rent=1050)
     print('rental monthly', r.monthly())

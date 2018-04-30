@@ -2,15 +2,6 @@ import datetime
 import copy
 
 
-class Monthly:
-    def __init__(self, month, *args, **kwargs):
-        self.month = month
-
-    def increment_month(self):
-        self.month = self.month.next()
-        return self.month
-
-
 class Month:
     def __init__(self, month, year):
         self.month = month
@@ -71,3 +62,22 @@ class Month:
 
     def __hash__(self):
         return hash(frozenset((self.month, self.year, self.datetime)))
+
+
+class Monthly:
+    def __init__(self):
+        self.__month = None
+        self.start_month = None
+
+    @property
+    def month(self):
+        if self.__month is None:
+            raise ValueError('You must set property "month" before using object of class ' + self.__class__.__name__)
+        return self.__month
+
+    @month.setter
+    def month(self, x: Month):
+        self.__month = x
+
+        if self.start_month is None:
+            self.start_month = x.copy()
